@@ -1,10 +1,5 @@
-import { tracked } from '@glimmer/tracking';
-
 import { resource } from '../core';
-
-class TrackedValue<T> {
-  @tracked value: T | undefined;
-}
+import { cell } from '../core/cell';
 
 /**
  * <div class="callout note">
@@ -67,25 +62,21 @@ class TrackedValue<T> {
  */
 export function debounce<Value = unknown>(ms: number, thunk: () => Value, initialize: boolean = false) {
   let lastValue: Value;
-  let timer: number;
-  let state = new TrackedValue<Value>();
-
-  /**
-   * Whether the initial value has been returned inmediately or not
-   */
-  let wasInitialized = !initialize;
+  let state = cell();
 
   return resource(({ on }) => {
+    let timer: number;
     lastValue = thunk();
 
-    if (!wasInitialized) {
-      state.value = lastValue;
-      wasInitialized = true;
-    } else {
-      on.cleanup(() => timer && clearTimeout(timer));
-      timer = setTimeout(() => (state.value = lastValue), ms);
-    }
+    on.cleanup(() => timer && clearTimeout(timer));
+    timer = setTimeout(() => (state.current = lastValue), ms);
 
-    return state.value;
+    return () => {
+      if (initialize) {
+        return state.current ?? lastValue;
+      }
+
+      return state.current;
+    };
   });
 }

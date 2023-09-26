@@ -58,7 +58,7 @@ module('Utils | debounce | js', function (hooks) {
       class Test {
         @tracked data = 'initial';
 
-        @use text = debounce(100, () => this.data, true);
+        @use text = debounce(1000, () => this.data, true);
       }
 
       let test = new Test();
@@ -94,6 +94,13 @@ module('Utils | debounce | js', function (hooks) {
       // wait at least 100ms, value is now updated
       await someTime(110);
       assert.strictEqual(test.text, 'boop');
+
+      test.data = 'booperdeboop';
+      assert.strictEqual(test.text, 'boop');
+
+      // wait at least 100ms, value is now updated
+      await someTime(110);
+      assert.strictEqual(test.text, 'booperdeboop');
     });
   });
 });
